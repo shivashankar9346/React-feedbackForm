@@ -1,60 +1,77 @@
-import React from 'react'
-import { useState } from 'react'
+import React from 'react';
+import { useForm } from 'react-hook-form';
 
-const form = () => {
+const FeedbackForm = () => {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm({ mode: 'onChange' });
 
+  const [entries, setEntries] = React.useState([]);
 
-    const [name, setName] = useState("")
-    const [feedback, setFeedback] = useState("");
-    const [entries, setEntries] = useState([])
+  const onSubmit = (data) => {
+    const newEntry = { id: Date.now(), name: data.name, feedback: data.feedback };
+    setEntries([...entries, newEntry]);
+    reset(); 
+  };
 
-    function handleSubmit(e) {
-        e.preventDefault()
+  return (
+    <div className="container">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <h1>Feedback Collector</h1>
 
-        if (name.trim() === "" || feedback.trim() === "") {
-            alert("Please fill out both fields before submitting.");
-            return;
-        }
-
-        const newEntry = { id: Date.now(), name, feedback };
-
-        setEntries([...entries, newEntry]);
-
-        setName("");
-        setFeedback("");
-    }
-
-    return (
-        <div className='container'>
-            <form action="" onSubmit={handleSubmit}>
-                <h1>Feedback Collector</h1>
-                <div>
-                    <label htmlFor="name">Name:</label> <br />
-                    <input type="text" placeholder='Your Name' value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-                <div>
-                    <label htmlFor="feedback">Feedback:</label> <br />
-                    <textarea type="text" placeholder='Your Feedback' value={feedback} onChange={(e) => setFeedback(e.target.value)} />
-                </div>
-                <button>Submit</button>
-            </form>
-
-            <div className='feedback'>
-                {
-                    entries.length === 0 ? (
-                        <p></p>
-                    ) : (
-                        entries.map((entry) => (
-                            <div key={entry.id} className="feedback-item">
-                                <strong>{entry.name}</strong>: {entry.feedback}
-                            </div>
-
-                        ))
-                    )
-                }
-            </div>
+        <div>
+          <label htmlFor="name">Name:</label> <br />
+          <input
+            type="text"
+            placeholder="Your Name"
+            {...register('name', { required: true, minLength: 3 })}
+          />
+          {errors.name && (
+            <p style={{ color: 'red', fontSize: '14px' }}>
+              Name is required (min 3 characters)
+            </p>
+          )}
         </div>
-    )
-}
 
-export default form
+       
+        <div>
+          <label htmlFor="feedback">Feedback:</label> <br />
+          <textarea
+            placeholder="Your Feedback"
+            {...register('feedback', {
+              required: true,
+              minLength: 10,
+              maxLength: 300,
+            })}
+          />
+          {errors.feedback && (
+            <p style={{ color: 'red', fontSize: '14px' }}>
+              Feedback must be 10–300 characters long
+            </p>
+          )}
+        </div>
+
+        <button type="submit" disabled={!isValid}>
+          Submit
+        </button>
+      </form>
+
+      <div className="feedback">
+        {entries.length === 0 ? (
+          <p></p>
+        ) : (
+          entries.map((entry) => (
+            <div key={entry.id} className="feedback-item">
+              <strong>{entry.name}</strong>: {entry.feedback}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default FeedbackForm;
